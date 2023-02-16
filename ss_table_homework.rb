@@ -9,34 +9,38 @@ class SSTable
   Missing = Class.new(Error)
 
   attr_reader :byte_size
-  attr_accessor :db
+  attr_accessor :table
 
   def initialize(byte_size)
     @byte_size = byte_size
-    @db = Hash.new
+    @table = {}
     @current_byte_size = 0
   end
 
-  # This should be done in constant time: O(n)
+  # This should be done in constant time: O(1)
   def fetch(key_s)
-    db[key_s]
-    # raise NotImplementedError
+    raise SSTable::Missing if table[key_s].nil?
+
+    table[key_s]
   end
 
-  # This should be done in constant time: O(n)
+  # This should be done in constant time: O(1)
   #
   # Make sure to respect your byte_size limit!
   # Ruby will just keep giving you more memory if you continue to ask for it
   #
   # @see String#bytesize
   def insert(key_s, value_s)
-    puts @currrent_byte_size
     @current_byte_size += value_s.bytesize
-    db[key_s] = value_s unless byte_size_exceeded?
+
+    raise SSTable::Full if byte_size_exceeded?
+
+    table[key_s] = value_s
   end
 
+  private
   def byte_size_exceeded?
-    byte_size == @current_byte_size
+    @current_byte_size >= byte_size
   end
 end
 
